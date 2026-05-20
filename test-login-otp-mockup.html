@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Login & OTP Mockup Spec</title>
+  <style>
+    /* 1. VISUAL STYLES & DESIGN TOKENS */
+    :root {
+      --bg-color: #ffffff;
+      --primary-color: #0070f3;
+      --spacing-unit: 8px; /* The "notches" for positioning */
+    }
+    body { background-color: var(--bg-color); font-family: sans-serif; }
+
+    /* Layout containers that allow re-ordering and notch-shifting */
+    .form-container {
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--spacing-unit) * 2);
+    }
+
+    /* 2. DESIGNER EDIT MODE INTERACTION STYLES */
+    .tv-editor-active [data-component-id] {
+      outline: 2px dashed #0070f3;
+      cursor: pointer;
+      position: relative;
+    }
+    .tv-editor-active [data-component-id]:hover::after {
+      content: attr(data-component-id);
+      position: absolute; top: -18px; left: 0;
+      background: #0070f3; color: white; font-size: 10px; padding: 2px 4px;
+    }
+    #tv-control-panel {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #222; color: white; padding: 15px; border-radius: 8px; z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+  <main id="tvastr-mockup">
+    <section id="scr_login" class="screen-view">
+      <h2>Login</h2>
+      <div class="form-container">
+        <div data-component-id="cmp_username" style="order: 1;">
+          <label>Username</label>
+          <input type="text" />
+        </div>
+        <div data-component-id="cmp_password" style="order: 2;">
+          <label>Password</label>
+          <input type="password" />
+        </div>
+        <button data-component-id="cmp_login_submit" style="order: 3;">Next</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="application/json" id="tvastr-context">
+  {
+    "mockupId": "mock_login_flow",
+    "versionId": "v1",
+    "screens": [
+      {"id": "scr_login", "name": "Login Screen"},
+      {"id": "scr_otp", "name": "OTP Verification"},
+      {"id": "scr_success", "name": "Success Screen"}
+    ],
+    "components": [
+      {"id": "cmp_username", "screenId": "scr_login", "order": 1, "notchOffset": 0},
+      {"id": "cmp_password", "screenId": "scr_login", "order": 2, "notchOffset": 0}
+    ],
+    "designTokens": {
+      "backgroundColor": "#ffffff"
+    }
+  }
+  </script>
+
+  <script>
+    // Injected Floating Edit Controls
+    const controls = document.createElement('div');
+    controls.id = 'tv-control-panel';
+    controls.innerHTML = `
+      <button id="btn-toggle-edit">Enter Edit Mode</button>
+      <div id="edit-tools" style="display:none; margin-top:10px;">
+        <label>Page Color: </label>
+        <input type="color" id="color-picker" value="#ffffff"><br><br>
+        <button id="btn-move-up">Move Selected 2 Notches Up</button>
+        <hr>
+        <button id="btn-save">Save File Changes</button>
+      </div>
+    `;
+    document.body.appendChild(controls);
+
+    let selectedComponentId = null;
+    let isEditMode = false;
+
+    // Toggle Edit Mode Appearance
+    document.getElementById('btn-toggle-edit').addEventListener('click', (e) => {
+      isEditMode = !isEditMode;
+      document.body.classList.toggle('tv-editor-active', isEditMode);
+      document.getElementById('edit-tools').style.display = isEditMode ? 'block' : 'none';
+      e.target.innerText = isEditMode ? 'Exit Edit Mode' : 'Enter Edit Mode';
+    });
+
+    // Handle Selecting a Component visually
+    document.getElementById('tvastr-mockup').addEventListener('click', (e) => {
+      if (!isEditMode) return;
+      const comp = e.target.closest('[data-component-id]');
+      if (comp) {
+        selectedComponentId = comp.getAttribute('data-component-id');
+        // Clear previous selections and highlight current
+        document.querySelectorAll('[data-component-id]').forEach(el => el.style.outlineColor = '#0070f3');
+        comp.style.outlineColor = '#ff0000';
+      }
+    });
+
+    // 1. Change the Color
+    document.getElementById('color-picker').addEventListener('input', (e) => {
+      const newColor = e.target.value;
+      // Update Visuals
+      document.documentElement.style.setProperty('--bg-color', newColor);
+
+      // Update the underlying structured context Graph
+      const context = JSON.parse(document.getElementById('tvastr-context').textContent);
+      context.designTokens.backgroundColor = newColor;
+      document.getElementById('tvastr-context').textContent = JSON.stringify(context, null, 2);
+    });
+
+    // 2. Move Username 2 notches above
+    document.getElementById('btn-move-up').addEventListener('click', () => {
+      if (!selectedComponentId) return alert('Click a component first!');
+
+      const element = document.querySelector(`[data-component-id="${selectedComponentId}"]`);
+
+      // "2 notches above" means shifting its layout order or applying a margin shift
+      // For this simple example, we swap its CSS Flexbox order property
+      let currentOrder = parseInt(element.style.order || 1);
+      let newOrder = Math.max(1, currentOrder - 1);
+      element.style.order = newOrder;
+
+      // Push an offset style rule to physically shift it up by our notch system variable
+      element.style.transform = `translateY(calc(var(--spacing-unit) * -2))`;
+
+      // Synchronize the change to the data block
+      const context = JSON.parse(document.getElementById('tvastr-context').textContent);
+      const compData = context.components.find(c => c.id === selectedComponentId);
+      if (compData) {
+        compData.order = newOrder;
+        compData.notchOffset = -2; // Documenting the exact change
+      }
+      document.getElementById('tvastr-context').textContent = JSON.stringify(context, null, 2);
+    });
+
+    // 3. Saving the changes locally
+    document.getElementById('btn-save').addEventListener('click', async () => {
+      // Step 1: Clean up the editor UI elements before cloning so they aren't permanently baked in
+      controls.remove();
+      document.body.classList.remove('tv-editor-active');
+
+      // Step 2: Grab the entirely modified HTML document string
+      const updatedHTML = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+      // Step 3: Use Modern Browser API to write the file straight back to disk
+      try {
+        // This prompts the native save picker browser dialog
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'index.html',
+          types: [{ description: 'HTML Document', accept: {'text/html': ['.html']} }]
+        });
+        const writable = await handle.createWritable();
+        await writable.write(updatedHTML);
+        await writable.close();
+        alert('Saved successfully! Reload the page to see your updated document.');
+        window.location.reload();
+      } catch (err) {
+        console.error("Save aborted or failed", err);
+        // Re-attach controls if save failed/canceled
+        document.body.appendChild(controls);
+      }
+    });
+  </script>
+</body>
+</html>

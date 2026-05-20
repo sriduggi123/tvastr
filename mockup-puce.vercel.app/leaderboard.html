@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#00796B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Trashformers — Leaderboard</title>
+<link href="assets/fonts/inter-poppins.css" rel="stylesheet">
+<link href="assets/fonts/material-icons-round.css" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+--primary:#009D8B;--primary-dark:#00796B;--primary-light:#E0F2F1;
+--bg:#EFF7F6;--white:#FFFFFF;
+--text:#212121;--text-2:#757575;--text-on-primary:#FFFFFF;
+--success:#009D8B;--warning:#E8A317;--error:#E53935;--error-bg:#FFEBEE;
+--gold:#FFB300;--gold-light:#FFF8E1;--gold-bg:#FFF0C2;
+--silver:#78909C;--silver-light:#ECEFF1;--silver-bg:#CFD8DC;
+--bronze:#8D6E63;--bronze-light:#EFEBE9;--bronze-bg:#D7CCC8;
+--platinum:#7E57C2;
+--locked:#E0E0E0;--divider:#EEEEEE;
+--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-up:0 4px 12px rgba(0,0,0,.15);
+--radius:8px;--radius-sm:4px;
+--nav-h:56px;--header-h:56px;
+}
+html,body{font-family:'Inter',system-ui,sans-serif;background:#1a1a2e;height:100%;overflow:hidden}
+.mi{font-family:'Material Icons Round';font-weight:normal;font-style:normal;font-size:20px;display:inline-block;line-height:1;vertical-align:middle;-webkit-font-smoothing:antialiased}
+
+/* Desktop: phone frame */
+.phone-frame{position:relative;width:375px;height:812px;margin:20px auto;background:var(--bg);border-radius:40px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.4);border:8px solid #1a1a2e}
+/* Mobile: full-screen */
+@media(max-width:420px){
+  html,body{background:var(--bg)}
+  .phone-frame{width:100%;height:100%;height:100dvh;border-radius:0;margin:0;border:0;box-shadow:none}
+  .header{padding-top:env(safe-area-inset-top)}
+  .bottom-nav{padding-bottom:env(safe-area-inset-bottom)}
+}
+
+.screen{display:flex;flex-direction:column;width:100%;height:100%;background:var(--bg)}
+
+/* Beach waves */
+.screen::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:320px;pointer-events:none;z-index:3;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 375 320' preserveAspectRatio='none'%3E%3Cpath d='M0,200 C60,175 130,215 200,185 C270,155 330,195 375,170 L375,320 L0,320Z' fill='%23009D8B' opacity='0.05'/%3E%3Cpath d='M0,230 C80,210 150,250 220,225 C290,200 340,240 375,215 L375,320 L0,320Z' fill='%23009D8B' opacity='0.07'/%3E%3Cpath d='M0,260 C50,245 110,270 190,255 C270,240 320,265 375,250 L375,320 L0,320Z' fill='%2300796B' opacity='0.1'/%3E%3Crect y='295' width='375' height='25' fill='%23C8AD7F' opacity='0.1'/%3E%3C/svg%3E");
+  background-size:100% 100%;background-repeat:no-repeat;
+}
+
+.header{min-height:var(--header-h);background:var(--primary);display:flex;align-items:center;padding:0 16px;color:var(--text-on-primary);position:relative;z-index:10}
+.header .title{flex:1;text-align:center;font-size:17px;font-weight:600;font-family:'Poppins',sans-serif}
+
+.content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;position:relative}
+
+.bottom-nav{height:var(--nav-h);min-height:var(--nav-h);background:var(--white);border-top:1px solid var(--divider);display:flex;z-index:20}
+.bottom-nav .tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:#BDBDBD;font-size:10px;font-weight:500;transition:.15s;text-decoration:none;border:none;background:none;font-family:inherit}
+.bottom-nav .tab.active{color:var(--primary)}
+
+/* Segment controls */
+.segment{display:flex;background:var(--divider);border-radius:20px;padding:3px;margin-bottom:12px}
+.segment .seg-btn{flex:1;padding:8px 4px;text-align:center;border-radius:18px;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;transition:.15s;user-select:none}
+.segment .seg-btn.active{background:var(--primary);color:#fff}
+
+/* Leaderboard rows */
+.lb-row{display:flex;align-items:center;padding:14px 16px;gap:12px;border-bottom:1px solid var(--divider);cursor:pointer;background:var(--white);transition:.1s}
+.lb-row:active{opacity:.9}
+.lb-row.rank-1{background:linear-gradient(135deg,#FFF9C4 0%,#FFE082 100%);border-bottom:1px solid #FFD54F;border-left:4px solid var(--gold);box-shadow:0 2px 8px rgba(255,179,0,.2)}
+.lb-row.rank-2{background:linear-gradient(135deg,#E8EAF6 0%,#C5CAE9 100%);border-bottom:1px solid #9FA8DA;border-left:4px solid #5C6BC0;box-shadow:0 2px 8px rgba(92,107,192,.15)}
+.lb-row.rank-3{background:linear-gradient(135deg,#FBE9E7 0%,#FFCCBC 100%);border-bottom:1px solid #FFAB91;border-left:4px solid #FF7043;box-shadow:0 2px 8px rgba(255,112,67,.15)}
+.lb-row.me{background:linear-gradient(135deg,#E0F2F1 0%,#B2DFDB 100%);border-left:4px solid var(--primary);border-bottom:1px solid var(--primary)}
+.lb-rank{width:28px;font-size:16px;font-weight:800;color:var(--text-2);text-align:center}
+.lb-row.rank-1 .lb-rank{color:var(--gold);font-size:18px}
+.lb-row.rank-2 .lb-rank{color:var(--silver);font-size:17px}
+.lb-row.rank-3 .lb-rank{color:var(--bronze);font-size:17px}
+.lb-row.me .lb-rank{color:var(--primary)}
+.lb-avatar{width:38px;height:38px;border-radius:50%;background:var(--primary-light);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--primary)}
+.lb-row.rank-1 .lb-avatar{background:var(--gold-bg);color:#795548;border:2px solid var(--gold)}
+.lb-row.rank-2 .lb-avatar{background:#C5CAE9;color:#283593;border:2px solid #5C6BC0}
+.lb-row.rank-3 .lb-avatar{background:#FFCCBC;color:#BF360C;border:2px solid #FF7043}
+.lb-row.me .lb-avatar{background:var(--primary);color:#fff;border:2px solid var(--primary-dark)}
+.lb-info{flex:1}
+.lb-name{font-size:14px;font-weight:600;color:var(--text)}
+.lb-row.me .lb-name{color:var(--primary);font-weight:700}
+.lb-meta{font-size:11px;color:var(--text-2);display:flex;gap:6px;align-items:center;margin-top:2px}
+.lb-pts{font-size:16px;font-weight:800;color:var(--text);text-align:right;font-family:'Poppins',sans-serif}
+.lb-row.rank-1 .lb-pts{color:var(--gold);font-size:18px}
+.lb-row.me .lb-pts{color:var(--primary)}
+
+/* YOUR POSITION separator */
+.lb-separator{padding:12px 16px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;gap:8px}
+.lb-separator .sep-text{font-size:13px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.lb-separator .sep-line{flex:1;height:1px;background:rgba(255,255,255,.3)}
+
+/* TOP 10 section header */
+.lb-section-header{padding:10px 16px;background:var(--white);border-bottom:2px solid var(--primary);display:flex;align-items:center;gap:8px}
+.lb-section-header .lsh-text{font-size:14px;font-weight:800;color:var(--primary);letter-spacing:1px;text-transform:uppercase}
+
+/* Medal icons */
+.medal{width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;vertical-align:middle}
+.medal.gold{background:linear-gradient(135deg,#FFB300,#FF8F00)}
+.medal.silver{background:linear-gradient(135deg,#90A4AE,#607D8B)}
+.medal.bronze{background:linear-gradient(135deg,#A1887F,#6D4C41)}
+
+/* Mayor badge */
+.mayor-badge{display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,#FFF8E1,#FFE082);padding:1px 6px;border-radius:10px;font-size:10px;font-weight:700;color:#E65100}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="screen">
+
+    <!-- Header -->
+    <div class="header">
+      <div style="width:32px"></div>
+      <div class="title">Leaderboard</div>
+      <div style="width:32px"></div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div class="content">
+      <div style="padding:12px 16px 0">
+        <!-- Region filter -->
+        <div class="segment">
+          <div class="seg-btn active" onclick="setSingle(this)">All Goa</div>
+        </div>
+        <!-- Time filter -->
+        <div class="segment">
+          <div class="seg-btn active" onclick="setSingle(this)">All Time</div>
+          <div class="seg-btn" onclick="setSingle(this)">This Month</div>
+          <div class="seg-btn" onclick="setSingle(this)">This Week</div>
+        </div>
+      </div>
+
+      <!-- TOP 10 header -->
+      <div class="lb-section-header">
+        <span class="mi" style="font-size:20px;color:var(--primary)">emoji_events</span>
+        <span class="lsh-text">Top 10</span>
+      </div>
+
+      <!-- Rank 1 -->
+      <div class="lb-row rank-1">
+        <div class="lb-rank">1</div>
+        <div class="lb-avatar">RK</div>
+        <div class="lb-info">
+          <div class="lb-name">Ravi K.</div>
+          <div class="lb-meta">
+            <span class="medal gold"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px;font-weight:600;color:#E65100">Gold</span>
+            <span class="mayor-badge"><span class="mi" style="font-size:10px">local_activity</span>Mayor(3)</span>
+          </div>
+        </div>
+        <div class="lb-pts">847</div>
+      </div>
+
+      <!-- Rank 2 -->
+      <div class="lb-row rank-2">
+        <div class="lb-rank">2</div>
+        <div class="lb-avatar">PS</div>
+        <div class="lb-info">
+          <div class="lb-name">Priya S.</div>
+          <div class="lb-meta">
+            <span class="medal silver"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px;font-weight:600;color:#455A64">Silver</span>
+          </div>
+        </div>
+        <div class="lb-pts">612</div>
+      </div>
+
+      <!-- Rank 3 -->
+      <div class="lb-row rank-3">
+        <div class="lb-rank">3</div>
+        <div class="lb-avatar">MD</div>
+        <div class="lb-info">
+          <div class="lb-name">Mohan D.</div>
+          <div class="lb-meta">
+            <span class="medal silver"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px;font-weight:600;color:#455A64">Silver</span>
+            <span class="mayor-badge"><span class="mi" style="font-size:10px">local_activity</span>Mayor(1)</span>
+          </div>
+        </div>
+        <div class="lb-pts">589</div>
+      </div>
+
+      <!-- Rank 4 -->
+      <div class="lb-row">
+        <div class="lb-rank">4</div>
+        <div class="lb-avatar">AV</div>
+        <div class="lb-info">
+          <div class="lb-name">Anita V.</div>
+          <div class="lb-meta">
+            <span class="medal silver"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Silver</span>
+          </div>
+        </div>
+        <div class="lb-pts">423</div>
+      </div>
+
+      <!-- Rank 5 -->
+      <div class="lb-row">
+        <div class="lb-rank">5</div>
+        <div class="lb-avatar">SK</div>
+        <div class="lb-info">
+          <div class="lb-name">Suresh K.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">312</div>
+      </div>
+
+      <!-- Rank 6 -->
+      <div class="lb-row">
+        <div class="lb-rank">6</div>
+        <div class="lb-avatar">NP</div>
+        <div class="lb-info">
+          <div class="lb-name">Neha P.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">278</div>
+      </div>
+
+      <!-- Rank 7 -->
+      <div class="lb-row">
+        <div class="lb-rank">7</div>
+        <div class="lb-avatar">GN</div>
+        <div class="lb-info">
+          <div class="lb-name">Ganesh N.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">244</div>
+      </div>
+
+      <!-- Rank 8 -->
+      <div class="lb-row">
+        <div class="lb-rank">8</div>
+        <div class="lb-avatar">LF</div>
+        <div class="lb-info">
+          <div class="lb-name">Lata F.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">221</div>
+      </div>
+
+      <!-- Rank 9 -->
+      <div class="lb-row">
+        <div class="lb-rank">9</div>
+        <div class="lb-avatar">RC</div>
+        <div class="lb-info">
+          <div class="lb-name">Rohan C.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">198</div>
+      </div>
+
+      <!-- Rank 10 -->
+      <div class="lb-row">
+        <div class="lb-rank">10</div>
+        <div class="lb-avatar">BM</div>
+        <div class="lb-info">
+          <div class="lb-name">Bindu M.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">176</div>
+      </div>
+
+      <!-- YOUR POSITION separator -->
+      <div class="lb-separator">
+        <div class="sep-line"></div>
+        <span class="mi" style="font-size:18px;color:#fff">my_location</span>
+        <span class="sep-text">Your Position</span>
+        <div class="sep-line"></div>
+      </div>
+
+      <!-- Neighbourhood rows -->
+      <div class="lb-row">
+        <div class="lb-rank">31</div>
+        <div class="lb-avatar">DT</div>
+        <div class="lb-info">
+          <div class="lb-name">Deepak T.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">156</div>
+      </div>
+
+      <div class="lb-row">
+        <div class="lb-rank">32</div>
+        <div class="lb-avatar">SM</div>
+        <div class="lb-info">
+          <div class="lb-name">Sunita M.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">148</div>
+      </div>
+
+      <div class="lb-row">
+        <div class="lb-rank">33</div>
+        <div class="lb-avatar">RP</div>
+        <div class="lb-info">
+          <div class="lb-name">Raj P.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">145</div>
+      </div>
+
+      <!-- You (rank 34) -->
+      <div class="lb-row me">
+        <div class="lb-rank"><span class="mi" style="font-size:14px">play_arrow</span> 34</div>
+        <div class="lb-avatar">MK</div>
+        <div class="lb-info">
+          <div class="lb-name">You</div>
+          <div class="lb-meta">
+            <span class="medal silver"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px;font-weight:600;color:var(--primary)">Silver</span>
+            <span class="mayor-badge"><span class="mi" style="font-size:10px">local_activity</span>Mayor(2)</span>
+          </div>
+        </div>
+        <div class="lb-pts">142</div>
+      </div>
+
+      <div class="lb-row">
+        <div class="lb-rank">35</div>
+        <div class="lb-avatar">KR</div>
+        <div class="lb-info">
+          <div class="lb-name">Kamla R.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">139</div>
+      </div>
+
+      <div class="lb-row">
+        <div class="lb-rank">36</div>
+        <div class="lb-avatar">VS</div>
+        <div class="lb-info">
+          <div class="lb-name">Vinod S.</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">135</div>
+      </div>
+
+      <div class="lb-row">
+        <div class="lb-rank">37</div>
+        <div class="lb-avatar">AT</div>
+        <div class="lb-info">
+          <div class="lb-name">Anonymous</div>
+          <div class="lb-meta">
+            <span class="medal bronze"><span class="mi" style="font-size:10px">star</span></span>
+            <span style="font-size:10px">Bronze</span>
+          </div>
+        </div>
+        <div class="lb-pts">131</div>
+      </div>
+    </div><!-- /content -->
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="tab" onclick="window.location.href='index.html'">
+        <span class="mi">home</span>Home
+      </button>
+      <button class="tab active">
+        <span class="mi">leaderboard</span>Leaderboard
+      </button>
+      <button class="tab" onclick="window.location.href='index.html'">
+        <span class="mi">person</span>Profile
+      </button>
+    </div>
+
+  </div><!-- /screen -->
+</div><!-- /phone-frame -->
+
+<script>
+function setSingle(btn) {
+  btn.closest('.segment').querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>

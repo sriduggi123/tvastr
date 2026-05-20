@@ -1,0 +1,19 @@
+{
+  "project_name": "tvastr",
+  "backend_dirs": [
+    "scripts"
+  ],
+  "frontend_dirs": [
+    "."
+  ],
+  "output_dir": "Autodoc",
+  "fetch_patterns": [
+    "fetch",
+    "authFetch",
+    "apiFetch",
+    "axios\\.get",
+    "axios\\.post",
+    "axios\\.put",
+    "axios\\.delete"
+  ]
+}
